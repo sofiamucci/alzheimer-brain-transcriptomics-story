@@ -114,8 +114,10 @@ ggplot(data = data.frame(prop_variance, pc = 1:length(prop_variance)), aes(x = p
 # Sample-to-sample correlation heatmap
 pheatmap(vsd_cor_data)
 
-# Save DESeq2 results object for use in 07_volcano_plot.R
+# Save all three pairwise DESeq2 results for downstream scripts
 saveRDS(res_old_vs_ad, "data/res_data.rds")
+saveRDS(res_old_vs_young, "data/res_old_vs_young.rds")
+saveRDS(res_ad_vs_young, "data/res_ad_vs_young.rds")
 
 # Save data for use in downstream scripts
 saveRDS(col.data, "data/col_data.rds")
