@@ -53,8 +53,15 @@ resultsNames(data.analisis)
 res_old_vs_ad <- results(data.analisis, contrast = c("condition", "AD", "Old"))
 res_old_vs_ad
 
+# Old vs Young: pure aging effect (no disease)
+res_old_vs_young <- results(data.analisis, contrast = c("condition", "Old", "Young"))
+summary(res_old_vs_young)
+
+# AD vs Young: combined aging + disease effect
+res_ad_vs_young <- results(data.analisis, contrast = c("condition", "AD", "Young"))
+summary(res_ad_vs_young)
+
 plotDispEsts(data.analisis)
-summary(res_old_vs_ad)
 
 # Normalize and estimate size factors
 estimated_data.dds <- estimateSizeFactors(data.ddsk)
