@@ -6,7 +6,7 @@ library(dplyr)
 sample_info <- read.csv("data/sample_metadata_full.csv")
 
 # Build paths to each sample's quant.sf file
-quant_files <- file.path("data/fastq", paste0(sample_info$external_id, "_quant"), "quant.sf")
+quant_files <- file.path("data/fastq", paste0(sample_info$external_id, "_trimmed_quant"), "quant.sf")
 names(quant_files) <- sample_info$external_id
 
 # Confirm all files exist before importing

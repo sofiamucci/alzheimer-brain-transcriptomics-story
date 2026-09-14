@@ -4,6 +4,7 @@ library(pheatmap)
 library(tidyverse)
 library(dplyr)
 library(pROC)
+library(apeglm)
 
 ## Load metadata and salmon/tximport quantifications
 col.data <- read.csv("data/sample_metadata_full.csv")
@@ -50,18 +51,30 @@ data.analisis <- DESeq(data.ddsk)
 resultsNames(data.analisis)
 
 # Old vs AD: the disease-specific comparison, controlling for baseline aging
-res_old_vs_ad <- results(data.analisis, contrast = c("condition", "AD", "Old"))
-res_old_vs_ad
+res_old_vs_ad <- results(data.analisis, 
+                         contrast = c("condition", "AD", "Old"), 
+                         alpha = 0.01)
+summary(res_old_vs_ad)
 
 # Old vs Young: pure aging effect (no disease)
-res_old_vs_young <- results(data.analisis, contrast = c("condition", "Old", "Young"))
+res_old_vs_young <- results(data.analisis, 
+                            contrast = c("condition", "Old", "Young"), 
+                            alpha = 0.01)
 summary(res_old_vs_young)
 
 # AD vs Young: combined aging + disease effect
-res_ad_vs_young <- results(data.analisis, contrast = c("condition", "AD", "Young"))
+res_ad_vs_young <- results(data.analisis, 
+                           contrast = c("condition", "AD", "Young"), 
+                           alpha = 0.01)
 summary(res_ad_vs_young)
 
 plotDispEsts(data.analisis)
+
+# --- Shrink log2FoldChange estimates (type="normal" for consistency 
+# across all three contrasts, avoiding apeglm/ashr dependency issues) ---
+res_old_vs_ad <- lfcShrink(data.analisis, contrast = c("condition", "AD", "Old"), type = "normal")
+res_old_vs_young <- lfcShrink(data.analisis, contrast = c("condition", "Old", "Young"), type = "normal")
+res_ad_vs_young <- lfcShrink(data.analisis, contrast = c("condition", "AD", "Young"), type = "normal")
 
 # Normalize and estimate size factors
 estimated_data.dds <- estimateSizeFactors(data.ddsk)
@@ -99,17 +112,18 @@ names(PCA_2)
 prop_variance <- PCA_2$sdev^2 / sum(PCA_2$sdev^2)
 prop_variance
 
-# Screeplot max=1
-ggplot(data = data.frame(prop_variance, pc = 1:length(prop_variance)), aes(x = pc, y = prop_variance)) +
-  geom_col(fill = "red", color = "red", width = 0.5) +
-  scale_y_continuous(limits = c(0, 1)) +
-  labs(x = "Principal components", y = "Proportion of variance explained")
+# Highlight first 5 PCs in one color, rest in dark grey
+pc_data <- data.frame(prop_variance, pc = 1:length(prop_variance))
+pc_data$highlight <- ifelse(pc_data$pc <= 5, "PC1-PC5 (~52% of variance)", "Remaining PCs")
 
-# Screeplot max=0.25
-ggplot(data = data.frame(prop_variance, pc = 1:length(prop_variance)), aes(x = pc, y = prop_variance)) +
-  geom_col(fill = "red", color = "red", width = 0.5) +
+ggplot(pc_data, aes(x = pc, y = prop_variance, fill = highlight)) +
+  geom_col(width = 0.5) +
+  scale_fill_manual(values = c("PC1-PC5 (~52% of variance)" = "darkorange", "Remaining PCs" = "grey30")) +
   scale_y_continuous(limits = c(0, 0.25)) +
-  labs(x = "Principal components", y = "Proportion of variance explained")
+  scale_x_continuous(breaks = seq(0, length(prop_variance), by = 5)) +
+  labs(x = "Principal components", y = "Proportion of variance explained", fill = NULL) +
+  theme_bw() +
+  theme(legend.position = "top")
 
 # Sample-to-sample correlation heatmap
 pheatmap(vsd_cor_data)
