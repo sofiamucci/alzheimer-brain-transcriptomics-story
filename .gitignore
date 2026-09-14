@@ -9,3 +9,6 @@
 
 # Ignore all files ending in _quant (salmon output folders)
 *_quant/
+
+# Ignore all files generates by venn package
+VennDiagram*.log
