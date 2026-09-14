@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.DS_Store
+
+# Ignore all .fastq files anywhere in the repo
+*.fastq
+
+# Ignore all files ending in _quant (salmon output folders)
+*_quant/
