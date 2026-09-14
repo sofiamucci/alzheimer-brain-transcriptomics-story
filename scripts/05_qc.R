@@ -43,7 +43,7 @@ data.dds
 keep <- rowSums(counts(data.dds)) >= 10
 data.ddsk <- data.dds[keep, ]
 
-# --- Boxplot of log2(counts) distribution per sample ---
+## Boxplot of log2(counts) distribution per sample
 # Confirms that overall transcript abundance distributions are 
 # comparable across samples before proceeding with normalization/analysis
 logcounts <- log2(counts(data.ddsk) + 1)
@@ -74,28 +74,39 @@ resultsNames(data.analisis)
 # Old vs AD: the disease-specific comparison, controlling for baseline aging
 res_old_vs_ad <- results(data.analisis, 
                          contrast = c("condition", "AD", "Old"), 
-                         alpha = 0.01)
+                         alpha = 0.05)
+metadata(res_old_vs_ad)$alpha
 summary(res_old_vs_ad)
 
 # Old vs Young: pure aging effect (no disease)
 res_old_vs_young <- results(data.analisis, 
                             contrast = c("condition", "Old", "Young"), 
-                            alpha = 0.01)
+                            alpha = 0.05)
+metadata(res_old_vs_young)$alpha
 summary(res_old_vs_young)
 
 # AD vs Young: combined aging + disease effect
 res_ad_vs_young <- results(data.analisis, 
                            contrast = c("condition", "AD", "Young"), 
-                           alpha = 0.01)
+                           alpha = 0.05)
+metadata(res_ad_vs_young)$alpha
 summary(res_ad_vs_young)
 
 plotDispEsts(data.analisis)
 
-# --- Shrink log2FoldChange estimates (type="normal" for consistency 
-# across all three contrasts, avoiding apeglm/ashr dependency issues) ---
-res_old_vs_ad <- lfcShrink(data.analisis, contrast = c("condition", "AD", "Old"), type = "normal")
-res_old_vs_young <- lfcShrink(data.analisis, contrast = c("condition", "Old", "Young"), type = "normal")
-res_ad_vs_young <- lfcShrink(data.analisis, contrast = c("condition", "AD", "Young"), type = "normal")
+# Shrink log2FoldChange estimates (type="normal" for consistency 
+# across all three contrasts, avoiding apeglm/ashr dependency issues)
+res_old_vs_young <- lfcShrink(data.analisis, coef = "condition_Old_vs_Young", 
+                              res = res_old_vs_young, type = "normal")
+res_ad_vs_young <- lfcShrink(data.analisis, coef = "condition_AD_vs_Young", 
+                             res = res_ad_vs_young, type = "normal")
+res_old_vs_ad <- lfcShrink(data.analisis, contrast = c("condition", "AD", "Old"), 
+                           res = res_old_vs_ad, type = "normal")
+
+summary(res_old_vs_ad)
+summary(res_old_vs_young)
+summary(res_ad_vs_young)
+
 
 # Normalize and estimate size factors
 estimated_data.dds <- estimateSizeFactors(data.ddsk)
@@ -139,7 +150,7 @@ pc_data$highlight <- ifelse(pc_data$pc <= 5, "PC1-PC5 (~52% of variance)", "Rema
 
 ggplot(pc_data, aes(x = pc, y = prop_variance, fill = highlight)) +
   geom_col(width = 0.5) +
-  scale_fill_manual(values = c("PC1-PC5 (~52% of variance)" = "darkorange", "Remaining PCs" = "grey30")) +
+  scale_fill_manual(values = c("PC1-PC5 (~52% of variance)" = "darkorange", "Remaining PCs" = "darkturquoise")) +
   scale_y_continuous(limits = c(0, 0.25)) +
   scale_x_continuous(breaks = seq(0, length(prop_variance), by = 5)) +
   labs(x = "Principal components", y = "Proportion of variance explained", fill = NULL) +
