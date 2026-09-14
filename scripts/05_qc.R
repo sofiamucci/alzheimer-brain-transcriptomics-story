@@ -43,6 +43,27 @@ data.dds
 keep <- rowSums(counts(data.dds)) >= 10
 data.ddsk <- data.dds[keep, ]
 
+# --- Boxplot of log2(counts) distribution per sample ---
+# Confirms that overall transcript abundance distributions are 
+# comparable across samples before proceeding with normalization/analysis
+logcounts <- log2(counts(data.ddsk) + 1)
+
+condition_colors <- c("Young" = "darkturquoise", "Old" = "grey40", "AD" = "darkorange")
+sample_colors <- condition_colors[col.data$condition]
+
+par(oma = c(0, 0, 4, 0))
+
+boxplot(logcounts, xlab = "Samples", ylab = "Log2(Counts + 1)", 
+        las = 2, col = sample_colors, cex.axis = 0.6)
+
+mtext("Relative abundance of counts", side = 3, line = 1, outer = TRUE, cex = 1.5, font = 2)
+
+legend(x = "top", inset = -0.15, legend = names(condition_colors), 
+       fill = condition_colors, horiz = TRUE, xpd = NA, bty = "n", cex = 0.9)
+
+par(oma = c(0, 0, 0, 0))
+
+
 # Set reference level (Young = baseline for aging/disease comparisons)
 data.ddsk$condition <- relevel(data.ddsk$condition, ref = "Young")
 
