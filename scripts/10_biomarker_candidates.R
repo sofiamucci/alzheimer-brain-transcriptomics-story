@@ -12,7 +12,7 @@ exclusive_ad_old_df <- readRDS("data/genes_exclusive_ad_vs_old.rds")
 
 # Candidates: genes from the immune/inflammatory GO categories 
 # identified in 09_go_exclusive_genes.R
-immune_genes <- c("MPO", "SELE", "ELANE", "PRTN3", "IL4I1", "KMO", "IL33", "CITED1", "EGR1")
+immune_genes <- c("IL4I1", "BCAT2", "KMO", "SDS", "GLUD1", "KYAT1", "SELE", "NLRP3", "ELANE")
 
 candidates <- res_table_sig_ad_old %>%
   filter(sub("\\..*", "", gene_id) %in% sub("\\..*", "", exclusive_ad_old_df$gene_id))
@@ -50,7 +50,7 @@ ggplot(candidate_long, aes(x = condition, y = normalized_count, fill = condition
 # ROC/AUC per candidate gene
 # Exploratory: genes were selected based on significance in this same 
 # dataset (circular evaluation), so AUC values should not be interpreted 
-# as validated biomarker performance — see note below.
+# as validated biomarker performance.
 
 roc_results <- list()
 for (i in seq_len(nrow(candidates))) {
