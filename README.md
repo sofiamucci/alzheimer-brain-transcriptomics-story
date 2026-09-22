@@ -95,6 +95,29 @@ org.Hs.eg.db, clusterProfiler, pROC, plotly, ggVennDiagram, VennDiagram
 
 External tools: conda, salmon, fastp, FastQC, sra-tools
 
+## Reproducing the Environment
+
+Exact package versions are pinned via conda (`environment.yml`) and 
+renv (`renv.lock`), so the analysis environment can be recreated exactly.
+
+**1. External tools (conda/mamba):**
+```bash
+mamba env create -f environment.yml
+mamba activate alz-rnaseq
+```
+
+**2. R packages (renv):**
+
+Open the project in RStudio (`alzheimer-brain-transcriptomics-story.Rproj`) 
+— renv activates automatically — then run:
+```r
+renv::restore()
+```
+
+This installs the exact versions recorded in `renv.lock`, including 
+Bioconductor packages (DESeq2, Biostrings, clusterProfiler, org.Hs.eg.db) 
+and their dependencies.
+
 ## License
 MIT — see [LICENSE](./LICENSE)
 
