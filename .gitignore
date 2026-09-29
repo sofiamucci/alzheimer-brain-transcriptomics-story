@@ -12,3 +12,7 @@
 
 # Ignore all files generates by venn package
 VennDiagram*.log
+# Nextflow
+work/
+.nextflow/
+.nextflow.log*
