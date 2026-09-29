@@ -307,7 +307,57 @@ that same dataset — a circular design that will overestimate real-world
 predictive performance. Proper biomarker validation would require testing 
 these candidates in an independent cohort not used for gene selection.
 
+## Appendix: Validation Against nf-core/rnaseq
+
+To check whether the quantification results were robust to the choice of
+pipeline, the same 30 samples were separately processed with
+`nf-core/rnaseq` (pseudo-alignment mode, salmon only, STAR alignment
+skipped):
+
+nextflow run nf-core/rnaseq -profile docker -c custom.config
+--input samplesheet.csv --outdir results
+--pseudo_aligner salmon
+--fasta .../GRCh38.primary_assembly.genome.fa.gz
+--gtf .../gencode.v47.primary_assembly.annotation.gtf.gz
 
 
+Both pipelines used the same GENCODE v47 annotation, but built the salmon
+index differently: the manual pipeline indexed the GENCODE transcript
+FASTA directly (no decoys), while nf-core builds a **decoy-aware** index
+from the genome + GTF, using the rest of the genome as a decoy sequence to
+help salmon discard reads that cannot be confidently assigned to a
+transcript.
 
+Gene-level counts from both pipelines were matched by Ensembl gene ID
+(GENCODE version suffix stripped, since the two annotation sources encode
+it slightly differently) and compared per sample on a log2(count+1) scale.
 
+| Gene set | Pearson (mean) | Spearman (mean) |
+|---|---|---|
+| All genes, counts (n=78,123) | 0.948 | 0.921 |
+| Protein-coding, counts | 0.976 | 0.986 |
+| Protein-coding, TPM | 0.967 | 0.974 |
+
+![Counts comparison, representative sample](figures/nfcore_counts_comparison.png)
+
+Agreement was consistently high across all 30 samples (no sample was an
+outlier), and improved substantially once restricted to protein-coding
+genes, the biotype used throughout the rest of this analysis. Inspecting
+the genes with the largest manual-vs-nf-core discrepancy showed they were
+concentrated in two categories: small structural/non-coding RNAs (e.g.
+RN7SK, RMRP, U2, several snoRNAs) and processed pseudogenes (e.g.
+GTF2IP4, HMGN2P5, MT1XP1). Both categories have many near-identical
+genomic copies, which is exactly where a decoy-aware index and a
+transcriptome-only index are expected to resolve multi-mapping reads
+differently, genes read assignment "flips" between near-duplicate
+copies. Since neither category is included in the differential expression
+analysis (protein-coding filter applied in `07_volcano_plot.R`), this
+divergence is unlikely to materially affect the biological findings reported 
+here, though a formal re-analysis using nf-core-derived counts would be 
+needed to confirm this directly.
+
+The same pattern held for TPM, with slightly more variation than raw
+counts (Pearson 0.967, Spearman 0.974 among protein-coding genes),
+consistent with TPM incorporating additional length- and
+library-size-normalization steps on top of the count-level differences
+already described above.
