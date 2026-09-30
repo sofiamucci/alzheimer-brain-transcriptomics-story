@@ -361,3 +361,79 @@ counts (Pearson 0.967, Spearman 0.974 among protein-coding genes),
 consistent with TPM incorporating additional length- and
 library-size-normalization steps on top of the count-level differences
 already described above.
+
+---
+
+## Limitations and Next Steps
+
+**Log2FC correlation across contrasts was explored and discarded.** 
+Comparing log2 fold-changes between the aging (Old vs Young) and disease 
+(AD vs Old) contrasts — as an alternative to the gene-overlap Venn diagram 
+— was attempted but abandoned. Both contrasts share "Old" as a baseline 
+group, which induces a statistical correlation artifact between their 
+log2FC values regardless of any real biological relationship between 
+aging and disease, and this cannot be corrected by choice of reference 
+level or contrast sign. Properly disentangling shared vs. distinct 
+aging/disease effects would require an interaction-term model rather 
+than pairwise contrasts, which was out of scope for this exploratory 
+analysis.
+
+**Biomarker panel performance (AUC) reflects circular gene selection, 
+not validated predictive power.** The 9-gene exploratory panel was 
+derived from the same dataset used to evaluate it — genes were selected 
+for being significantly differentially expressed between AD and Old in 
+this cohort. Nested cross-validation (5×5, ridge and lasso regularized 
+logistic regression via `glmnet`) was implemented to obtain an honest 
+estimate of model performance by ensuring the regularization strength 
+was never tuned on the same samples used to evaluate it. However, this 
+does not address a separate source of circularity: gene selection itself 
+happened outside the cross-validation loop, using the full dataset. As a 
+result, outer-fold AUC values (both ridge and lasso: AUC = 1.0 across all 
+5 outer folds) are inflated and should not be read as an estimate of how 
+this panel would perform on independent samples. Lasso regularization 
+consistently zeroed out 1–3 of the 9 genes across folds (most 
+consistently IL4I1 and SELE), suggesting some redundancy within the 
+panel — though this observation is subject to the same circularity 
+caveat. A methodologically rigorous estimate would require either (a) 
+repeating gene selection inside each outer fold, or (b) validating the 
+fixed panel against an independent cohort. Small sample size (n=22, 10 
+Old/12 AD) further limits how much either correction could stabilize the 
+estimate.
+
+**RIN differs significantly across conditions and was not corrected 
+for.** Donor covariates (sex, age at death, PMI, RIN, Braak, Cerad, % 
+neurons) from Nativio et al. 2018 Supplementary Table 1 were reviewed 
+for potential confounding with condition. Sex was excluded from 
+consideration (27/30 samples male, balanced 1 female per condition group) 
+and PMI showed no significant association with condition 
+(Kruskal-Wallis, p=0.78). RIN, however, differed significantly across 
+Young/Old/AD (Kruskal-Wallis, p=0.003), with AD samples showing the 
+lowest values — a known potential confounder, since lower RNA integrity 
+can itself affect measured gene expression independent of biology. The 
+published pipeline (`~ condition`, no covariates) was kept as the 
+primary analysis for reproducibility; RIN as an unadjusted confounder is 
+noted here as a limitation of the current design.
+
+**Cell-type composition was not accounted for.** Bulk RNA-seq measures 
+average expression across all cell types in a tissue sample, and 
+Alzheimer's disease involves shifts in cell-type proportions (e.g., 
+neuronal loss, glial activation) that can themselves produce expression 
+differences indistinguishable from within-cell-type regulatory changes. 
+The donor covariate table includes a `neuron_pct` column that was not 
+explored in this analysis and could be used for future cell-composition 
+correction or deconvolution.
+
+### Next Steps
+
+- Validate the 9-gene biomarker panel against an independent AD/Old 
+  cohort, or re-run gene selection nested within cross-validation, to 
+  obtain an unbiased performance estimate.
+- Model aging and disease effects jointly with an interaction term, to 
+  properly separate shared vs. distinct transcriptional programs instead 
+  of relying on pairwise contrasts.
+- Explore cell-type deconvolution or covariate correction using the 
+  `neuron_pct` column already available in the donor metadata.
+- Consider a sensitivity analysis incorporating RIN into the DESeq2 
+  design, weighing the trade-off against reduced statistical power at 
+  this sample size.
+
