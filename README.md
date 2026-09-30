@@ -78,7 +78,9 @@ and the complete gene overlap and enrichment analysis.
 │ ├── 07_volcano_plot.R # volcano plots, all 3 contrasts
 │ ├── 08_venn_overlap.R # gene overlap + combined heatmap
 │ ├── 09_go_exclusive_genes.R # GO enrichment on exclusive gene sets
-│ └── 10_biomarker_candidates.R # biomarker candidate exploration
+│ ├── 10_biomarker_candidates.R # biomarker candidate exploration
+│ ├── 11_compare_nfcore.R # validate manual pipeline against nf-core/rnaseq
+│ └── 12_nested_cv_biomarker.R # nested CV for the 9-gene biomarker panel (ridge/lasso)
 ├── data/ # metadata, results, gene lists
 └── figures/ # output plots
 ```
@@ -91,7 +93,8 @@ GSE104704 (GEO), reanalyzed from raw sequencing reads. See
 ## Requirements
 
 R packages: recount3, DESeq2, tximport, dplyr, ggplot2, pheatmap, 
-org.Hs.eg.db, clusterProfiler, pROC, plotly, ggVennDiagram, VennDiagram
+org.Hs.eg.db, clusterProfiler, pROC, plotly, ggVennDiagram, VennDiagram, 
+glmnet, caret
 
 External tools: conda, salmon, fastp, FastQC, sra-tools
 
