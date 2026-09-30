@@ -61,9 +61,35 @@ Three pairwise comparisons were computed from a single fitted model:
 | AD vs Old | Disease effect, controlling for age |
 | AD vs Young | Combined aging + disease effect |
 
+**Pipeline validation**: to check reproducibility across tools, the same 
+raw reads were also processed through 
+[nf-core/rnaseq](https://nf-co.re/rnaseq), a community-maintained, 
+containerized RNA-seq pipeline. Gene counts and TPM from both pipelines 
+show strong agreement when restricted to protein-coding genes (Pearson 
+r = 0.976 counts, r = 0.967 TPM); most divergence is concentrated in 
+non-coding RNAs and pseudogenes, attributable to differences in 
+salmon's decoy-aware index construction between the two pipelines.
+
 See [METHODS.md](./METHODS.md) for full technical detail, including 
 threshold selection, shrinkage method, protein-coding filtering rationale, 
-and the complete gene overlap and enrichment analysis.
+and the complete gene overlap and enrichment analysis, nf-core 
+validation, and limitations.
+
+## Limitations & Next Steps
+
+- The log2FC-correlation approach across contrasts was explored and 
+  discarded due to a statistical artifact from the shared baseline group.
+- Biomarker panel AUC (1.0, both ridge and lasso) reflects circular gene 
+  selection, not validated predictive performance — the 9 candidate 
+  genes were selected using the same data used to evaluate them.
+- RIN (RNA integrity) differs significantly across conditions (AD 
+  lowest) and was not corrected for in the published model.
+- Cell-type composition (available as `neuron_pct` in donor metadata) 
+  was not accounted for.
+
+See [METHODS.md](./METHODS.md#limitations) for full detail on each point, 
+including the nested cross-validation results and next steps for 
+addressing them.
 
 ## Repository Structure
 ```
@@ -80,7 +106,8 @@ and the complete gene overlap and enrichment analysis.
 │ ├── 09_go_exclusive_genes.R # GO enrichment on exclusive gene sets
 │ ├── 10_biomarker_candidates.R # biomarker candidate exploration
 │ ├── 11_compare_nfcore.R # validate manual pipeline against nf-core/rnaseq
-│ └── 12_nested_cv_biomarker.R # nested CV for the 9-gene biomarker panel (ridge/lasso)
+│ ├── 12_nested_cv_biomarker.R # nested CV for the 9-gene biomarker panel (ridge/lasso)
+│ └── 13_covariate_confounding_check.R # check RIN/PMI vs condition confounding
 ├── data/ # metadata, results, gene lists
 └── figures/ # output plots
 ```
